@@ -56,15 +56,15 @@ export class LensingRenderer {
     
     // Calculate apparent size of Schwarzschild radius on screen
     // rs is 1.0 simulation units
-    // Distance from camera to BH
     const distToCamera = camera.position.length();
-    
-    // Very rough approximation of apparent radius: rs / (dist * tan(fov/2))
     const fovRad = (camera.fov * Math.PI) / 180;
-    const apparentRadius = 1.0 / (distToCamera * Math.tan(fovRad / 2));
     
-    // Need to adjust this depending on how much it distorts, but this is a starting point.
-    // Lensing strength might need to scale accordingly.
+    // The screen height in world coordinates at the distance of the black hole
+    const screenWorldHeight = 2.0 * distToCamera * Math.tan(fovRad / 2.0);
+    
+    // UV space height is 1.0, so the apparent radius is:
+    const apparentRadius = 1.0 / screenWorldHeight;
+    
     this.lensingPass.uniforms.uSchwarzschildR.value = apparentRadius;
   }
 

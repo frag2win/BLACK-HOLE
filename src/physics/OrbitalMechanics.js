@@ -71,9 +71,37 @@ export class OrbitalMechanics {
         p.position.copy(newState.position);
         p.velocity.copy(newState.velocity);
 
+        // Sub-ISCO Accretion Force: Matter inside 3rs cannot hold a stable orbit and rapidly spirals in.
+        // We simulate this by stripping orbital angular momentum (velocity).
+        if (p.position.lengthSq() < 9.0) { // 3.0^2
+            p.velocity.multiplyScalar(0.95);
+        }
+
         // Particle death condition: crosses Event Horizon (1 simulation unit)
         if (p.position.lengthSq() <= 1.0) {
-            p.alive = false;
+            // Respawn at outer edge of the disk
+            const r_max_sim = Config.disk.r_max_sim;
+            const theta = Math.random() * Math.PI * 2;
+            
+            p.position.set(
+                r_max_sim * Math.cos(theta),
+                0, // Perfect flat plane
+                r_max_sim * Math.sin(theta)
+            );
+            
+            // Calculate true keplerian velocity for respawn
+            this._posSI.copy(p.position).multiplyScalar(this.unitConverter.scale);
+            const r_m = this._posSI.length();
+            const M = this.gravityEngine.blackHole.M;
+            const Constants = { G: 6.674e-11 }; // From utils Constants
+            const v_orb_ms = Math.sqrt(Constants.G * M / r_m);
+            const v_orb_sim = v_orb_ms / this.unitConverter.scale;
+            
+            p.velocity.set(
+                -v_orb_sim * Math.sin(theta),
+                0,
+                v_orb_sim * Math.cos(theta)
+            );
         }
     }
   }

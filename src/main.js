@@ -16,7 +16,7 @@ import Stats from 'three/examples/jsm/libs/stats.module.js';
 // Setup basic HTML/CSS if not present via styles
 document.body.style.margin = '0';
 document.body.style.overflow = 'hidden';
-document.body.style.backgroundColor = '#111';
+document.body.style.backgroundColor = '#000';
 
 // Add a visible error overlay to help debug any runtime issues
 const errorDiv = document.createElement('div');
@@ -60,12 +60,6 @@ function init() {
   
   const lensingRenderer = new LensingRenderer(sceneManager, blackHole);
 
-  // Debug Helpers
-  const axesHelper = new THREE.AxesHelper( 50 );
-  sceneManager.scene.add( axesHelper );
-  const gridHelper = new THREE.GridHelper( 50, 50, 0x888888, 0x444444 );
-  sceneManager.scene.add( gridHelper );
-  
   // Controls & Stats
   const stats = new Stats();
   document.body.appendChild(stats.dom);

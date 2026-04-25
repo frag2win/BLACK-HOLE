@@ -39,8 +39,8 @@ export class DiskParticleSpawner {
       // We need velocity in sim units (rs / s) for the integration engine
       const v_orb_sim = v_orb_ms / this.unitConverter.scale;
 
-      // Small vertical scatter, thicker at the outer edge
-      const yDistortion = (Math.random() - 0.5) * 0.15 * (r_sim - 2.5);
+      // Perfect flat accretion disk, no vertical warping
+      const yDistortion = 0.0;
 
       const pos = new THREE.Vector3(
         r_sim * Math.cos(theta),

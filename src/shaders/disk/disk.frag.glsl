@@ -54,5 +54,8 @@ void main() {
         color += vec3(0.4, 0.1, 0.0) * (-vDoppler * 0.3);
     }
 
+    // Pre-multiply by alpha so additive blending doesn't render quad corners
+    color *= (alpha * 0.6);
+
     gl_FragColor = vec4(color, alpha * 0.6);
 }

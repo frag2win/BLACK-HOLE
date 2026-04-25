@@ -21,8 +21,10 @@ export class BlackHoleRenderer {
    * @returns {THREE.Mesh}
    */
   createBlackHoleMesh() {
-    // Event horizon is at 1.0 simulation units
-    const geometry = new THREE.SphereGeometry(1.0, 64, 64);
+    // Event horizon is drawn by the post-processing shader.
+    // If we make this 1.0, it will occlude the back of the accretion disk,
+    // breaking the gravitational lensing effect.
+    const geometry = new THREE.SphereGeometry(0.001, 8, 8);
     
     const material = new THREE.ShaderMaterial({
       vertexShader: `

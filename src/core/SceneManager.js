@@ -29,7 +29,7 @@ export class SceneManager {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setClearColor(0x111111, 1);
+    this.renderer.setClearColor(0x000000, 1);
     
     // Ensure the canvas fully covers the screen
     this.renderer.domElement.style.display = 'block';
