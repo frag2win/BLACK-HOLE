@@ -10,7 +10,7 @@ export const Config = {
     timeScale: 0.0005,
   },
   disk: {
-    particleCount: 50000,
+    particleCount: 100000,
     r_isco_sim: 3.0,
     r_max_sim: 10.0
   },

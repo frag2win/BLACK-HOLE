@@ -1,5 +1,11 @@
 /**
- * @fileoverview Entry point for Black Hole Simulation Phase 1
+ * @fileoverview Entry point for Black Hole Simulation
+ * 
+ * Phase 1 WebGPU Migration:
+ * - Async initialization for WebGPU device
+ * - GPU compute particle system (when WebGPU available)
+ * - CPU fallback particle system (when WebGPU unavailable)
+ * - All existing features preserved: lensing, bloom, starfield, HUD, GUI
  */
 import * as THREE from 'three';
 import { Config } from './config.js';
@@ -42,11 +48,12 @@ window.addEventListener('error', (e) => {
   errorDiv.innerText += (e.message || e.toString()) + '\n';
 });
 
-function init() {
-  console.log("Initializing Phase 1 - Base System");
+async function init() {
+  console.log("Initializing Black Hole Simulation — Phase 1 WebGPU");
 
-  // 1. Initialization
+  // 1. Async Scene Manager Initialization (WebGPU detection)
   const sceneManager = new SceneManager(document.getElementById('root'));
+  await sceneManager.init();
   
   // 2. Physics Data
   const blackHole = new BlackHole({ massInSolarMasses: Config.blackHole.massInSolarMasses });
@@ -60,7 +67,25 @@ function init() {
   // 3. Rendering objects
   const blackHoleRenderer = new BlackHoleRenderer(sceneManager.scene);
   const starfield = new StarfieldRenderer(sceneManager.scene);
-  const accretionDisk = new AccretionDiskRenderer(sceneManager.scene, blackHole, unitConverter);
+  
+  // 4. Particle system — GPU compute or CPU fallback
+  let gpuParticleSystem = null;
+  let cpuAccretionDisk = null;
+  
+  if (sceneManager.isWebGPU && sceneManager.gpuDevice) {
+    // WebGPU path — GPU compute particles
+    const { GPUParticleSystem } = await import('./gpu/GPUParticleSystem.js');
+    gpuParticleSystem = await GPUParticleSystem.create(
+      sceneManager.scene,
+      sceneManager.gpuDevice,
+      Config.disk.particleCount
+    );
+    console.log('%c[Main] GPU Compute Particle System active ✅', 'color: #00ff88; font-weight: bold');
+  } else {
+    // WebGL fallback — CPU-integrated particles
+    cpuAccretionDisk = new AccretionDiskRenderer(sceneManager.scene, blackHole, unitConverter);
+    console.log('[Main] CPU Particle System fallback active');
+  }
   
   const lensingRenderer = new LensingRenderer(sceneManager, blackHole);
   const infoOverlay = new InfoOverlay(blackHole, Config);
@@ -70,12 +95,12 @@ function init() {
   document.body.appendChild(stats.dom);
   
   const controls = new OrbitControls(sceneManager.camera, sceneManager.renderer.domElement);
-  controls.minDistance = 1.05; // Cannot go past just outside the singularity (1 sim unit)
+  controls.minDistance = 1.05;
   controls.maxDistance = 100;
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
   
-  // 4. GUI Controls
+  // 5. GUI Controls
   const gui = new GUI();
   const lensingFolder = gui.addFolder('Gravitational Lensing');
   
@@ -98,18 +123,35 @@ function init() {
     
   lensingFolder.open();
 
+  // Renderer info in GUI
+  const infoFolder = gui.addFolder('Engine');
+  const engineInfo = {
+    renderer: sceneManager.isWebGPU ? 'WebGPU Compute' : 'WebGL (CPU)',
+    particles: Config.disk.particleCount.toLocaleString(),
+  };
+  infoFolder.add(engineInfo, 'renderer').name('Backend').disable();
+  infoFolder.add(engineInfo, 'particles').name('Particles').disable();
+
   // Handle window resize for composer
   window.addEventListener('resize', () => {
     lensingRenderer.onWindowResize();
   });
 
-  // 4. Update Loop
+  // 6. Update Loop
   const renderLoop = new RenderLoop(
-    (dt) => {
+    async (dt) => {
       // Physics / animation updates
       blackHoleRenderer.update(dt);
       starfield.update(dt);
-      accretionDisk.update(dt);
+      
+      if (gpuParticleSystem) {
+        await gpuParticleSystem.update(dt);
+        // Update HUD with GPU particle count
+        infoOverlay.activeParticleCount = gpuParticleSystem.activeParticleCount;
+      } else if (cpuAccretionDisk) {
+        cpuAccretionDisk.update(dt);
+      }
+      
       lensingRenderer.update(dt);
       infoOverlay.update();
       

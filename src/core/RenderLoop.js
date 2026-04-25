@@ -33,7 +33,7 @@ export class RenderLoop {
     }
   }
 
-  loop(currentTime) {
+  async loop(currentTime) {
     if (!this.isRunning) return;
 
     // Calculate delta time in seconds
@@ -45,7 +45,7 @@ export class RenderLoop {
       dt = Config.simulation.maxDeltaTime;
     }
 
-    this.updateCallback(dt);
+    await this.updateCallback(dt);
     this.renderCallback();
 
     this.animationFrameId = requestAnimationFrame(this.loop);

@@ -32,13 +32,17 @@ export class InfoOverlay {
     const referenceR = 10.0;
     const timeDilation = 1.0 / Math.sqrt(1.0 - 1.0 / referenceR);
     
+    const activeCount = this.activeParticleCount || this.config.disk.particleCount;
+    
     this.container.innerHTML = `
       <div style="font-weight: bold; color: #ffaa00; margin-bottom: 5px; font-size: 16px;">DATA HUD</div>
       <div><b>Mass:</b> ${this.blackHole.massInSolarMasses} M<sub>☉</sub></div>
       <div><b>Schwarzschild Radius (r<sub>s</sub>):</b> ${this.blackHole.rs.toExponential(2)} m</div>
       <div><b>Photon Sphere:</b> 1.5 r<sub>s</sub></div>
       <div><b>Time Dilation (@10r<sub>s</sub>):</b> ${timeDilation.toFixed(3)}x</div>
-      <div style="margin-top: 10px; opacity: 0.7; font-size: 12px;"><b>Active Particles:</b> ${this.config.disk.particleCount.toLocaleString()}</div>
+      <div style="margin-top: 10px; opacity: 0.7; font-size: 12px;">
+        <b>Active Particles:</b> ${activeCount.toLocaleString()} / ${this.config.disk.particleCount.toLocaleString()}
+      </div>
     `;
   }
 }
