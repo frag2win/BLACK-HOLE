@@ -25,7 +25,8 @@ export class LensingRenderer {
         uBlackHolePos: { value: new THREE.Vector2(0.5, 0.5) },
         uSchwarzschildR: { value: 0.1 },
         uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-        uLensingStrength: { value: 1.0 }
+        uLensingStrength: { value: 1.0 },
+        uLensingMultiplier: { value: 1.0 }
       },
       vertexShader: lensingVert,
       fragmentShader: lensingFrag

@@ -12,6 +12,7 @@ import { AccretionDiskRenderer } from './rendering/AccretionDiskRenderer.js';
 import { LensingRenderer } from './rendering/LensingRenderer.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
+import GUI from 'lil-gui';
 
 // Setup basic HTML/CSS if not present via styles
 document.body.style.margin = '0';
@@ -69,6 +70,29 @@ function init() {
   controls.maxDistance = 100;
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
+  
+  // 4. GUI Controls
+  const gui = new GUI();
+  const lensingFolder = gui.addFolder('Gravitational Lensing');
+  
+  const lensingParams = {
+    multiplier: lensingRenderer.lensingPass.uniforms.uLensingMultiplier.value,
+    strength: lensingRenderer.lensingPass.uniforms.uLensingStrength.value
+  };
+  
+  lensingFolder.add(lensingParams, 'multiplier', 1.0, 10.0, 0.1)
+    .name('Lensing Multiplier')
+    .onChange((value) => {
+      lensingRenderer.lensingPass.uniforms.uLensingMultiplier.value = value;
+    });
+    
+  lensingFolder.add(lensingParams, 'strength', 0.0, 2.0, 0.01)
+    .name('Lensing Strength')
+    .onChange((value) => {
+      lensingRenderer.lensingPass.uniforms.uLensingStrength.value = value;
+    });
+    
+  lensingFolder.open();
 
   // Handle window resize for composer
   window.addEventListener('resize', () => {

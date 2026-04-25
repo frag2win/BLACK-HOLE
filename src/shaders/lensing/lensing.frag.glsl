@@ -3,6 +3,7 @@ uniform vec2 uBlackHolePos;
 uniform float uSchwarzschildR;
 uniform vec2 uResolution;
 uniform float uLensingStrength;
+uniform float uLensingMultiplier;
 
 varying vec2 vUv;
 
@@ -27,7 +28,7 @@ void main() {
 
     // 4. Calculate deflection strength (r^2 falloff as suggested by user)
     float safeR = max(r, 0.001);
-    float deflectionStrength = (rs_screen * rs_screen) / (safeR * safeR) * uLensingStrength;
+    float deflectionStrength = ((rs_screen * rs_screen) / (safeR * safeR)) * uLensingStrength * uLensingMultiplier;
 
     // 5. Calculate the vector of the deflection in aspect-corrected space
     // We normalize delta (which is already aspect-corrected)
