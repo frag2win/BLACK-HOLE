@@ -27,10 +27,15 @@ export class DiskParticleSpawner {
     const M = this.blackHole.M;
 
     for (let i = 0; i < count; i++) {
-      // Clump particles closer to the inner edge (ISCO)
-      const t = Math.pow(Math.random(), 2);
+      // Clump particles even more aggressively closer to the inner edge (ISCO)
+      const t = Math.pow(Math.random(), 3.5);
       const r_sim = r_isco_sim + t * (r_max_sim - r_isco_sim);
-      const theta = Math.random() * Math.PI * 2;
+      
+      // Add a spiral phase shift based on the radius
+      const spiralArms = 2;
+      const spiralTwist = 1.5;
+      const spiralOffset = Math.sin(r_sim * spiralTwist) * (2.0 / spiralArms);
+      const theta = (Math.random() * Math.PI * 2) + spiralOffset;
       
       // Calculate true orbital physics in SI units
       const r_m = this.unitConverter.toMeters(r_sim);

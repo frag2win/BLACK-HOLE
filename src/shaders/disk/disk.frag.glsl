@@ -13,15 +13,16 @@ vec3 getThermalColor(float r) {
     // Normalize radius from r_ISCO (bound=0.0) to max disk radius (bound=1.0)
     float t = clamp((r - uIsco) / (uMaxRadius - uIsco), 0.0, 1.0);
     
-    // Colors mimicking a blackbody gradient
-    vec3 hotWhite = vec3(1.0, 0.95, 0.9);
-    vec3 brightOrange = vec3(1.0, 0.6, 0.1);
-    vec3 deepRed = vec3(0.5, 0.1, 0.0);
-    vec3 darkVoid = vec3(0.0, 0.0, 0.0);
+    // Colors mimicking a physically-inspired blackbody gradient
+    vec3 hotWhite = vec3(1.5, 1.4, 1.2);    // Intensely hot inner edge
+    vec3 brightYellow = vec3(1.0, 0.9, 0.4); // Transition zone
+    vec3 brightOrange = vec3(1.0, 0.4, 0.05); // Standard disk glow
+    vec3 deepRed = vec3(0.4, 0.02, 0.0);      // Cool outer edge
     
-    vec3 col = mix(hotWhite, brightOrange, smoothstep(0.0, 0.2, t));
-    col = mix(col, deepRed, smoothstep(0.2, 0.6, t));
-    col = mix(col, darkVoid, smoothstep(0.6, 1.0, t));
+    vec3 col = mix(hotWhite, brightYellow, smoothstep(0.0, 0.1, t));
+    col = mix(col, brightOrange, smoothstep(0.1, 0.4, t));
+    col = mix(col, deepRed, smoothstep(0.4, 0.9, t));
+    col = mix(col, vec3(0.0), smoothstep(0.9, 1.0, t));
     
     return col;
 }
@@ -40,22 +41,15 @@ void main() {
     // Intensity boost for additive blending glow
     vec3 color = getThermalColor(vRadius) * 2.5;
 
-    // Apply Doppler shift
-    // vDoppler > 0 means moving towards (blueshift -> boost intensity, shift color toward white/blue)
-    // vDoppler < 0 means moving away (redshift -> reduce intensity, shift color toward red)
+    // Doppler Beaming (relativistic beaming)
+    // Moving towards observer = significantly brighter
+    // Moving away = significantly dimmer
+    // We boost the factor to a 3-5x range as suggested.
+    float beamingFactor = exp(vDoppler * 2.0); 
+    color *= beamingFactor;
     
-    float dopplerFactor = 1.0 + vDoppler * 0.8; // Beaming effect
-    color *= dopplerFactor;
-    
-    // Slight hue shift
-    if (vDoppler > 0.0) {
-        color += vec3(0.1, 0.2, 0.4) * (vDoppler * 0.5);
-    } else {
-        color += vec3(0.4, 0.1, 0.0) * (-vDoppler * 0.3);
-    }
-
     // Pre-multiply by alpha so additive blending doesn't render quad corners
-    color *= (alpha * 0.6);
+    color *= (alpha * 0.4);
 
-    gl_FragColor = vec4(color, alpha * 0.6);
+    gl_FragColor = vec4(color, alpha * 0.4);
 }

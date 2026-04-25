@@ -10,6 +10,8 @@ import { UnitConverter } from './utils/UnitConverter.js';
 import { BlackHoleRenderer } from './rendering/BlackHoleRenderer.js';
 import { AccretionDiskRenderer } from './rendering/AccretionDiskRenderer.js';
 import { LensingRenderer } from './rendering/LensingRenderer.js';
+import { StarfieldRenderer } from './rendering/StarfieldRenderer.js';
+import { InfoOverlay } from './ui/InfoOverlay.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import GUI from 'lil-gui';
@@ -57,9 +59,11 @@ function init() {
 
   // 3. Rendering objects
   const blackHoleRenderer = new BlackHoleRenderer(sceneManager.scene);
+  const starfield = new StarfieldRenderer(sceneManager.scene);
   const accretionDisk = new AccretionDiskRenderer(sceneManager.scene, blackHole, unitConverter);
   
   const lensingRenderer = new LensingRenderer(sceneManager, blackHole);
+  const infoOverlay = new InfoOverlay(blackHole, Config);
 
   // Controls & Stats
   const stats = new Stats();
@@ -104,8 +108,10 @@ function init() {
     (dt) => {
       // Physics / animation updates
       blackHoleRenderer.update(dt);
+      starfield.update(dt);
       accretionDisk.update(dt);
       lensingRenderer.update(dt);
+      infoOverlay.update();
       
       // Controls update
       controls.update();

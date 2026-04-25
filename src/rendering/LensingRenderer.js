@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import lensingVert from '../shaders/lensing/lensing.vert.glsl';
 import lensingFrag from '../shaders/lensing/lensing.frag.glsl';
 import { Config } from '../config.js';
@@ -32,6 +33,16 @@ export class LensingRenderer {
       fragmentShader: lensingFrag
     };
     
+    // 2. Bloom Pass (Cinematic Glow)
+    this.bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      1.5, // strength
+      0.4, // radius
+      0.85 // threshold
+    );
+    this.composer.addPass(this.bloomPass);
+    
+    // 3. Lensing Pass (Distortion)
     this.lensingPass = new ShaderPass(LensingShader);
     this.composer.addPass(this.lensingPass);
     
@@ -42,6 +53,7 @@ export class LensingRenderer {
   onWindowResize() {
     this.composer.setSize(window.innerWidth, window.innerHeight);
     this.lensingPass.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+    this.bloomPass.resolution.set(window.innerWidth, window.innerHeight);
   }
 
   update(dt) {
