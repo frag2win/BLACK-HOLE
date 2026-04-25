@@ -1,5 +1,7 @@
 # Real-Time Black Hole Simulation
 
+![Simulation Preview](./docs/images/simulation_preview.png)
+
 ![Black Hole Simulation](https://img.shields.io/badge/Status-Development-orange)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![Three.js](https://img.shields.io/badge/Three.js-r168-black)
