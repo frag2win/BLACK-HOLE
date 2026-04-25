@@ -1,17 +1,19 @@
 uniform sampler2D tDiffuse;
 uniform vec2 uBlackHolePos;
 uniform float uSchwarzschildR;
-uniform float uAspect;
+uniform vec2 uResolution;
 uniform float uLensingStrength;
 
 varying vec2 vUv;
 
 void main() {
+    float aspect = uResolution.x / uResolution.y;
+    
     // 1. Get the vector from the black hole to the current pixel
     vec2 delta = vUv - uBlackHolePos;
 
     // 2. MULTIPLY the X-axis by the aspect ratio BEFORE calculating the distance
-    delta.x *= uAspect;
+    delta.x *= aspect;
 
     // 3. Now calculate the true, perfectly circular distance
     float r = length(delta);
@@ -23,17 +25,16 @@ void main() {
         return;
     }
 
-    // 4. Calculate deflection strength (using the r^2 falloff as suggested)
-    // We also include uLensingStrength for user control.
+    // 4. Calculate deflection strength (r^2 falloff as suggested by user)
     float safeR = max(r, 0.001);
     float deflectionStrength = (rs_screen * rs_screen) / (safeR * safeR) * uLensingStrength;
 
-    // 5. Calculate the vector of the deflection
-    // We use the aspect-corrected delta to get the correct direction
+    // 5. Calculate the vector of the deflection in aspect-corrected space
+    // We normalize delta (which is already aspect-corrected)
     vec2 offset = normalize(delta) * deflectionStrength;
 
     // 6. DIVIDE the X-axis by the aspect ratio to convert back to UV space
-    offset.x /= uAspect;
+    offset.x /= aspect;
 
     // 7. Apply the offset to the original UV
     vec2 primaryUV = vUv - offset;
@@ -45,14 +46,14 @@ void main() {
     }
 
     // 8. Secondary Image (Einstein Ring)
-    // Mirrors light from behind the black hole
+    // Mirroring light from behind the black hole
     float einsteinRadius = rs_screen * 1.5;
     if (r < einsteinRadius) {
         float mirroredR = einsteinRadius * 2.0 - r;
         vec2 secondaryDelta = normalize(delta) * mirroredR;
         
         // Convert back to UV space
-        vec2 secondaryUV = uBlackHolePos - vec2(secondaryDelta.x / uAspect, secondaryDelta.y);
+        vec2 secondaryUV = uBlackHolePos - vec2(secondaryDelta.x / aspect, secondaryDelta.y);
         
         if (secondaryUV.x >= 0.0 && secondaryUV.x <= 1.0 && secondaryUV.y >= 0.0 && secondaryUV.y <= 1.0) {
             vec4 col2 = texture2D(tDiffuse, secondaryUV);

@@ -24,7 +24,7 @@ export class LensingRenderer {
         tDiffuse: { value: null },
         uBlackHolePos: { value: new THREE.Vector2(0.5, 0.5) },
         uSchwarzschildR: { value: 0.1 },
-        uAspect: { value: window.innerWidth / window.innerHeight },
+        uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
         uLensingStrength: { value: 1.0 }
       },
       vertexShader: lensingVert,
@@ -40,7 +40,7 @@ export class LensingRenderer {
 
   onWindowResize() {
     this.composer.setSize(window.innerWidth, window.innerHeight);
-    this.lensingPass.uniforms.uAspect.value = window.innerWidth / window.innerHeight;
+    this.lensingPass.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
   }
 
   update(dt) {
