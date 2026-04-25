@@ -367,11 +367,33 @@ export class GPUParticleSystem {
           const z = mappedData[src + 2];
           const r = Math.sqrt(x * x + z * z);
           const T = Math.pow(r_isco / Math.max(r, r_isco), 0.75);
-          // Scaled for additive blending — inner=blue-white, outer=deep red
-          // Values intentionally low (0.1–0.6) so 500k particles don't clip
-          colorArr[dst]     = 0.3 + 0.3 * T;   // R: 0.3 (outer) → 0.6 (inner)
-          colorArr[dst + 1] = 0.05 + 0.35 * T;  // G: 0.05 (outer) → 0.4 (inner)
-          colorArr[dst + 2] = 0.02 + 0.48 * T;  // B: 0.02 (outer) → 0.5 (inner)
+          
+          // --- Gold/orange/white thermal gradient ---
+          // Inner = white-yellow (hot), Mid = orange, Outer = deep red
+          let R = 0.35 + 0.25 * T;   // R: 0.35 (outer) → 0.60 (inner)
+          let G = 0.08 + 0.22 * T;   // G: 0.08 (outer) → 0.30 (inner)
+          let B = 0.01 + 0.09 * T;   // B: 0.01 (outer) → 0.10 (inner)
+          
+          // --- Doppler beaming from velocity ---
+          // Velocity is at offsets src+4, src+5, src+6
+          const vx = mappedData[src + 4];
+          const vz = mappedData[src + 6];
+          // Orbital direction (tangent to orbit)
+          // View direction approximation: camera looks from +Z
+          // dot(vel, view_dir) → vz component gives approach/recede
+          const v_mag = Math.sqrt(vx * vx + vz * vz);
+          if (v_mag > 0.001) {
+            const beta = (vz / v_mag) * 0.3; // fraction of c
+            const bpb = (1.0 + beta) / (1.0 - beta);
+            const beaming = bpb * bpb; // relativistic beaming ~2-3x range
+            R *= beaming;
+            G *= beaming;
+            B *= beaming;
+          }
+          
+          colorArr[dst]     = R;
+          colorArr[dst + 1] = G;
+          colorArr[dst + 2] = B;
         }
       } else if (updateColors) {
         colorArr[dst] = 0;

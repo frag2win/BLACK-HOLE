@@ -48,11 +48,14 @@ void main() {
         return;
     }
 
-    // 5. Photon ring — sharp luminous band at ~1.5 rs
+    // 5. Photon ring — razor-thin luminous band at ~1.5 rs
     float photonSphereR = rs_screen * 1.5;
-    float photonRingWidth = rs_screen * 0.02; // Near 1px sharpness
+    float photonRingWidth = rs_screen * 0.008; // Razor thin
     float photonRingDist = abs(r - photonSphereR);
     float photonRing = smoothstep(photonRingWidth, 0.0, photonRingDist);
+    // Inner-edge brightness peak: brighter closest to event horizon
+    float innerFalloff = 1.0 / (1.0 + 8.0 * max(0.0, r - photonSphereR) / rs_screen);
+    photonRing *= innerFalloff;
     // Apply Kerr asymmetry to photon ring brightness too
     photonRing *= (1.0 + uSpin * 0.5 * cos(phi));
 
@@ -97,8 +100,8 @@ void main() {
         }
     }
 
-    // 11. Add photon ring glow
-    vec3 photonColor = vec3(1.0, 0.85, 0.6) * photonRing * 2.0;
+    // 11. Add photon ring glow — warm gold to match thermal palette
+    vec3 photonColor = vec3(1.0, 0.75, 0.3) * photonRing * 1.8;
     col.rgb += photonColor;
 
     // 12. Apply ACES tonemapping to prevent white-clipping from bloom
