@@ -1,0 +1,6 @@
+{
+  "name": "Real-Time Black Hole Simulation",
+  "description": "A real-time, interactive black hole simulation exploring gravitational lensing, accretion disk dynamics (with Doppler shift), and Schwarzschild geometry using Three.js and custom GLSL shaders.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
