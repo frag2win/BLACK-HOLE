@@ -7,11 +7,13 @@
 ![Three.js](https://img.shields.io/badge/Three.js-r168-black)
 ![Vite](https://img.shields.io/badge/Vite-5.x-646CFF)
 
-A physically-inspired, real-time simulation of a Schwarzschild black hole, featuring gravitational lensing effects and an accretion disk. Built with Three.js and custom GLSL shaders.
+A physically-inspired, real-time simulation of a Schwarzschild black hole, featuring gravitational lensing effects and an accretion disk. This project is optimized for AI Studio and features Gemini AI integration.
 
 ## 🚀 Overview
 
 This project aims to visualize the complex relativistic effects around a non-rotating (Schwarzschild) black hole. It provides a real-time interactive environment where users can observe light-bending phenomena and the dynamics of an accretion disk.
+
+**View on AI Studio**: [https://ai.studio/apps/8000bd92-ddac-4166-a097-80de3f1a3852](https://ai.studio/apps/8000bd92-ddac-4166-a097-80de3f1a3852)
 
 ## ✨ Features
 
@@ -20,22 +22,21 @@ This project aims to visualize the complex relativistic effects around a non-rot
 - **Dynamic Accretion Disk**: Procedural disk rendering with particle-like effects and orbital mechanics.
 - **Interactive Controls**: Fluid orbit controls for observing the black hole from various distances and angles.
 - **Real-Time Performance**: Optimized rendering loop capable of maintaining high frame rates at modern resolutions.
-- **Unit Conversion**: Seamlessly scales between physical SI units (meters, solar masses) and simulation units.
 
 ## 🛠️ Technology Stack
 
 - **Core**: [Three.js](https://threejs.org/) (WebGL Framework)
 - **Math**: [gl-matrix](https://glmatrix.net/)
+- **AI**: [Gemini AI](https://deepmind.google/technologies/gemini/) (Integration Support)
 - **Shaders**: custom GLSL (Vertex & Fragment)
 - **Build Tool**: [Vite](https://vitejs.dev/)
-- **UI**: [lil-gui](https://github.com/georgealways/lil-gui) (for real-time parameter tweaking)
 
 ## 📦 Getting Started
 
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (v18 or higher recommended)
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+- [npm](https://www.npmjs.com/)
 
 ### Installation
 
@@ -50,12 +51,18 @@ This project aims to visualize the complex relativistic effects around a non-rot
    npm install
    ```
 
-3. Start the development server:
+3. **Configure Environment**:
+   Create a `.env.local` file in the root directory and add your Gemini API key:
+   ```env
+   GEMINI_API_KEY=your_api_key_here
+   ```
+
+4. Start the development server:
    ```bash
    npm run dev
    ```
 
-4. Open your browser and navigate to `http://localhost:5173`.
+5. Open your browser and navigate to `http://localhost:3000`.
 
 ## 🔬 Physics Context
 
@@ -79,17 +86,6 @@ The simulation centers on a **Schwarzschild Black Hole**, which is the simplest 
 └── vite.config.js      # Vite configuration
 ```
 
-## 🛣️ Roadmap
-
-- [ ] **Phase 2**: Implement Kerr (rotating) black hole metrics.
-- [ ] **Phase 3**: Relativistic Doppler beaming and red-shift effects.
-- [ ] **Phase 4**: Advanced volumetric accretion disk rendering.
-- [ ] **Phase 5**: Starfield background with real-time lensing.
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🤝 Contributing
-
-Contributions are welcome! If you have suggestions for performance improvements or physics accuracy, feel free to open an issue or pull request.
