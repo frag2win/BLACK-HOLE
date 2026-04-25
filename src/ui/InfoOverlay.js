@@ -30,7 +30,6 @@ export class InfoOverlay {
   }
 
   update() {
-    // Calculate simple time dilation at some reference distance (e.g. 10rs)
     const referenceR = 10.0;
     const timeDilation = 1.0 / Math.sqrt(1.0 - 1.0 / referenceR);
     
@@ -38,12 +37,23 @@ export class InfoOverlay {
     const metricType = this.spin > 0.001 ? 'Kerr' : 'Schwarzschild';
     const metricColor = this.spin > 0.001 ? '#00ccff' : '#ffaa00';
     
-    // Build Kerr-specific lines
     let kerrLines = '';
     if (this.spin > 0.001) {
       kerrLines = `
         <div><b>Spin (a):</b> <span style="color: #00ccff">${this.spin.toFixed(3)}</span></div>
         <div><b>Event Horizon (r<sub>+</sub>):</b> ${this.r_plus.toFixed(3)} r<sub>s</sub></div>
+      `;
+    }
+    
+    // Performance metrics line
+    let perfLine = '';
+    if (this.perfMetrics) {
+      perfLine = `
+        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); opacity: 0.6; font-size: 11px;">
+          <b>GPU Compute:</b> ${this.perfMetrics.computeMs.toFixed(1)}ms |
+          <b>Readback:</b> ${this.perfMetrics.readbackMs.toFixed(1)}ms |
+          <b>Total:</b> ${this.perfMetrics.updateMs.toFixed(1)}ms
+        </div>
       `;
     }
     
@@ -57,6 +67,7 @@ export class InfoOverlay {
       <div style="margin-top: 10px; opacity: 0.7; font-size: 12px;">
         <b>Active Particles:</b> ${activeCount.toLocaleString()} / ${this.config.disk.particleCount.toLocaleString()}
       </div>
+      ${perfLine}
     `;
   }
 }

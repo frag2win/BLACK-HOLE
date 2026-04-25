@@ -168,8 +168,9 @@ async function init() {
       
       if (gpuParticleSystem) {
         await gpuParticleSystem.update(dt);
-        // Update HUD with GPU particle count
+        // Update HUD with GPU particle count and perf metrics
         infoOverlay.activeParticleCount = gpuParticleSystem.activeParticleCount;
+        infoOverlay.perfMetrics = gpuParticleSystem.perfMetrics;
       } else if (cpuAccretionDisk) {
         cpuAccretionDisk.update(dt);
       }
