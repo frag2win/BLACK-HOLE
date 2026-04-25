@@ -27,7 +27,8 @@ export class LensingRenderer {
         uSchwarzschildR: { value: 0.1 },
         uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
         uLensingStrength: { value: 1.0 },
-        uLensingMultiplier: { value: 1.0 }
+        uLensingMultiplier: { value: 1.0 },
+        uSpin: { value: 0.0 }
       },
       vertexShader: lensingVert,
       fragmentShader: lensingFrag
@@ -36,9 +37,9 @@ export class LensingRenderer {
     // 2. Bloom Pass (Cinematic Glow)
     this.bloomPass = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      1.5, // strength
-      0.4, // radius
-      0.85 // threshold
+      1.2, // strength (tuned down to avoid white-clipping with ACES)
+      0.5, // radius
+      0.7  // threshold (lower = more glow)
     );
     this.composer.addPass(this.bloomPass);
     

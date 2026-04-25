@@ -144,6 +144,8 @@ async function init() {
       .name('Spin (a)')
       .onChange((value) => {
         gpuParticleSystem.setSpin(value);
+        // Update lensing shader with spin for asymmetric Kerr shadow
+        lensingRenderer.lensingPass.uniforms.uSpin.value = value;
         // Update HUD with new spin info
         infoOverlay.spin = value;
         infoOverlay.r_plus = gpuParticleSystem.r_plus;

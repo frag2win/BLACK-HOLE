@@ -1,5 +1,10 @@
 /**
- * Accretion disk particle fragment shader
+ * Accretion disk particle fragment shader — Phase 3 Visual Upgrade
+ *
+ * Enhancements:
+ * - PRD-spec color temperature gradient (blue-white inner → red outer)
+ * - Relativistic Doppler beaming (3-5x asymmetry)
+ * - ACES tonemapping per-particle
  */
 varying vec2 vUv;
 varying float vRadius;
@@ -8,21 +13,26 @@ varying float vDoppler;
 uniform float uIsco;
 uniform float uMaxRadius;
 
-// Maps radius to a basic thermal gradient profile
+// ACES Filmic Tonemapping
+vec3 ACESFilm(vec3 x) {
+    return clamp(
+        (x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14),
+        0.0, 1.0
+    );
+}
+
+// PRD §5.3 — Color temperature gradient based on radius
+// Temperature at radius r follows a rough power law: T ∝ (r_ISCO / r)^0.75
+// Hot inner (blue-white) → warm mid (orange-gold) → cool outer (deep red)
 vec3 getThermalColor(float r) {
-    // Normalize radius from r_ISCO (bound=0.0) to max disk radius (bound=1.0)
-    float t = clamp((r - uIsco) / (uMaxRadius - uIsco), 0.0, 1.0);
+    float T = pow(uIsco / max(r, uIsco), 0.75);
     
-    // Colors mimicking a physically-inspired blackbody gradient
-    vec3 hotWhite = vec3(1.5, 1.4, 1.2);    // Intensely hot inner edge
-    vec3 brightYellow = vec3(1.0, 0.9, 0.4); // Transition zone
-    vec3 brightOrange = vec3(1.0, 0.4, 0.05); // Standard disk glow
-    vec3 deepRed = vec3(0.4, 0.02, 0.0);      // Cool outer edge
+    vec3 cool = vec3(0.9, 0.2, 0.05);    // Deep red (outer disk)
+    vec3 warm = vec3(1.0, 0.6, 0.1);     // Orange-gold (mid disk)
+    vec3 hot  = vec3(0.9, 0.95, 1.0);    // Blue-white (inner disk)
     
-    vec3 col = mix(hotWhite, brightYellow, smoothstep(0.0, 0.1, t));
-    col = mix(col, brightOrange, smoothstep(0.1, 0.4, t));
-    col = mix(col, deepRed, smoothstep(0.4, 0.9, t));
-    col = mix(col, vec3(0.0), smoothstep(0.9, 1.0, t));
+    // Double mix: cool → warm → hot based on temperature ratio
+    vec3 col = mix(cool, mix(warm, hot, T), T);
     
     return col;
 }
@@ -44,9 +54,12 @@ void main() {
     // Doppler Beaming (relativistic beaming)
     // Moving towards observer = significantly brighter
     // Moving away = significantly dimmer
-    // We boost the factor to a 3-5x range as suggested.
+    // exp(vDoppler * 2.0) gives ~3-5x range
     float beamingFactor = exp(vDoppler * 2.0); 
     color *= beamingFactor;
+    
+    // Apply ACES tonemapping to prevent white-clipping
+    color = ACESFilm(color);
     
     // Pre-multiply by alpha so additive blending doesn't render quad corners
     color *= (alpha * 0.4);
