@@ -235,10 +235,10 @@ export class GPUParticleSystem {
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     
     const material = new THREE.PointsMaterial({
-      size: 0.05,
+      size: 0.03,
       vertexColors: true,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.15,  // Low — 500k particles stack additively
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       sizeAttenuation: true,
@@ -367,9 +367,11 @@ export class GPUParticleSystem {
           const z = mappedData[src + 2];
           const r = Math.sqrt(x * x + z * z);
           const T = Math.pow(r_isco / Math.max(r, r_isco), 0.75);
-          colorArr[dst]     = 0.9 + 0.1 * T;
-          colorArr[dst + 1] = 0.2 + 0.75 * T;
-          colorArr[dst + 2] = 0.05 + 0.95 * T;
+          // Scaled for additive blending — inner=blue-white, outer=deep red
+          // Values intentionally low (0.1–0.6) so 500k particles don't clip
+          colorArr[dst]     = 0.3 + 0.3 * T;   // R: 0.3 (outer) → 0.6 (inner)
+          colorArr[dst + 1] = 0.05 + 0.35 * T;  // G: 0.05 (outer) → 0.4 (inner)
+          colorArr[dst + 2] = 0.02 + 0.48 * T;  // B: 0.02 (outer) → 0.5 (inner)
         }
       } else if (updateColors) {
         colorArr[dst] = 0;

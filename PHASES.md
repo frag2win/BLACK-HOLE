@@ -22,7 +22,7 @@
 
 **Goal:** Prove the WebGPU compute pipeline works. Offload particle physics from CPU to GPU.
 
-![Phase 1 — 100k GPU particles with WebGPU Compute](docs/phases/phase1_100k_particles.png)
+![Phase 1 — 100k GPU particles with WebGPU Compute](./docs/phases/phase1_100k_particles.png)
 *Phase 1 result: 100,000 particles, WebGPU Compute backend, Schwarzschild mode*
 
 ### What was built
@@ -84,7 +84,7 @@ WebGPU is used **only for compute** (raw `GPUDevice`). Three.js WebGL rendering 
 
 **Goal:** Replace Newtonian gravity with Kerr metric physics. Add spin parameter with real-time control.
 
-![Phase 2 — Kerr spin slider and frame dragging](docs/phases/phase2_kerr_spin.png)
+![Phase 2 — Kerr spin slider and frame dragging](./docs/phases/phase2_kerr_spin.png)
 *Phase 2 result: Kerr Physics folder with Spin (a) slider, Schwarzschild mode at a=0*
 
 ### What was implemented
@@ -149,7 +149,7 @@ Frame dragging is **gated** behind `if (spin > 0.001)` to avoid unnecessary cros
 
 **Goal:** Shader-only visual improvements. No physics changes.
 
-![Phase 3 — Color gradient, photon ring, ACES tonemapping](docs/phases/phase3_visual_upgrade.png)
+![Phase 3 — Color gradient, photon ring, ACES tonemapping](./docs/phases/phase3_visual_upgrade.png)
 *Phase 3 result: Blue-white inner disk → red outer, sharp photon ring, ACES tonemapping, bloom tuning*
 
 ### What was implemented
@@ -215,7 +215,7 @@ photonRing *= (1.0 + uSpin * 0.5 * cos(phi));
 
 **Goal:** Scale to 500k particles. Eliminate CPU stall. Add particle respawn and performance profiling.
 
-![Phase 4 — 500k particles with performance metrics](docs/phases/phase4_500k_particles.png)
+![Phase 4 — 500k particles with performance metrics](./docs/phases/phase4_500k_particles.png)
 *Phase 4 result: 500,000 particles, GPU respawn active, performance metrics in HUD*
 
 ### What was implemented

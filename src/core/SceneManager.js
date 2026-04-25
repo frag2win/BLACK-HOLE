@@ -17,10 +17,10 @@ export class SceneManager {
     this.container = container;
     this.isWebGPU = false;
     this.gpuDevice = null;
-    
+
     // Create Scene
     this.scene = new THREE.Scene();
-    
+
     // Create Camera
     const aspect = window.innerWidth / window.innerHeight;
     this.camera = new THREE.PerspectiveCamera(
@@ -29,7 +29,7 @@ export class SceneManager {
       Config.rendering.near,
       Config.rendering.far
     );
-    this.camera.position.set(0, 5, 20); // 20 rs away from singularity
+    this.camera.position.set(0, 1.5, 12); // Low-angle cinematic view
     this.camera.lookAt(0, 0, 0);
 
     // Renderer will be set up asynchronously via init()
@@ -52,15 +52,15 @@ export class SceneManager {
               maxBufferSize: adapter.limits.maxBufferSize,
             }
           });
-          
+
           this.gpuDevice = device;
           this.isWebGPU = true;
-          
+
           // Use standard WebGL renderer for Three.js rendering
           // (compute runs on raw WebGPU device, rendering stays WebGL)
           this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-          
-          console.log('%c[SceneManager] WebGPU device acquired ✅ — Compute shaders enabled', 
+
+          console.log('%c[SceneManager] WebGPU device acquired ✅ — Compute shaders enabled',
             'color: #00ff88; font-weight: bold');
           console.log(`[SceneManager] Max storage buffer: ${(device.limits.maxStorageBufferBindingSize / 1024 / 1024).toFixed(0)} MB`);
           console.log(`[SceneManager] Max buffer size: ${(device.limits.maxBufferSize / 1024 / 1024).toFixed(0)} MB`);
@@ -77,22 +77,22 @@ export class SceneManager {
       this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
       this._showWebGPUError();
     }
-    
+
     // Configure renderer (works for both WebGL and WebGPU)
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setClearColor(0x000000, 1);
-    
+
     // Ensure the canvas fully covers the screen
     this.renderer.domElement.style.display = 'block';
     this.renderer.domElement.style.width = '100vw';
     this.renderer.domElement.style.height = '100vh';
-    
+
     this.container.appendChild(this.renderer.domElement);
 
     // Handle Resize
     window.addEventListener('resize', this.onWindowResize.bind(this));
-    
+
     return this;
   }
 
@@ -121,10 +121,10 @@ export class SceneManager {
   onWindowResize() {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    
+
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-    
+
     this.renderer.setSize(width, height);
   }
 
@@ -134,7 +134,7 @@ export class SceneManager {
   render() {
     this.renderer.render(this.scene, this.camera);
   }
-  
+
   /**
    * Add object to scene
    * @param {THREE.Object3D} object 

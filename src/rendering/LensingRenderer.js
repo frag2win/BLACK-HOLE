@@ -37,9 +37,9 @@ export class LensingRenderer {
     // 2. Bloom Pass (Cinematic Glow)
     this.bloomPass = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      1.2, // strength (tuned down to avoid white-clipping with ACES)
-      0.5, // radius
-      0.7  // threshold (lower = more glow)
+      0.6, // strength (Tightened to reveal detail)
+      0.4, // radius
+      0.9  // threshold (Only the hottest inner regions bloom)
     );
     this.composer.addPass(this.bloomPass);
     
