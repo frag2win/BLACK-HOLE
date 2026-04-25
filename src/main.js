@@ -132,6 +132,26 @@ async function init() {
   infoFolder.add(engineInfo, 'renderer').name('Backend').disable();
   infoFolder.add(engineInfo, 'particles').name('Particles').disable();
 
+  // Kerr Physics controls (Phase 2)
+  if (gpuParticleSystem) {
+    const kerrFolder = gui.addFolder('Kerr Physics');
+    
+    const kerrParams = {
+      spin: gpuParticleSystem.spin,
+    };
+    
+    kerrFolder.add(kerrParams, 'spin', 0.0, 0.998, 0.001)
+      .name('Spin (a)')
+      .onChange((value) => {
+        gpuParticleSystem.setSpin(value);
+        // Update HUD with new spin info
+        infoOverlay.spin = value;
+        infoOverlay.r_plus = gpuParticleSystem.r_plus;
+      });
+      
+    kerrFolder.open();
+  }
+
   // Handle window resize for composer
   window.addEventListener('resize', () => {
     lensingRenderer.onWindowResize();

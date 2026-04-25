@@ -2,6 +2,8 @@ export class InfoOverlay {
   constructor(blackHole, config) {
     this.blackHole = blackHole;
     this.config = config;
+    this.spin = 0.0;
+    this.r_plus = 1.0;  // Default: Schwarzschild (r+ = rs)
     this.container = this.createOverlay();
     document.body.appendChild(this.container);
   }
@@ -33,11 +35,23 @@ export class InfoOverlay {
     const timeDilation = 1.0 / Math.sqrt(1.0 - 1.0 / referenceR);
     
     const activeCount = this.activeParticleCount || this.config.disk.particleCount;
+    const metricType = this.spin > 0.001 ? 'Kerr' : 'Schwarzschild';
+    const metricColor = this.spin > 0.001 ? '#00ccff' : '#ffaa00';
+    
+    // Build Kerr-specific lines
+    let kerrLines = '';
+    if (this.spin > 0.001) {
+      kerrLines = `
+        <div><b>Spin (a):</b> <span style="color: #00ccff">${this.spin.toFixed(3)}</span></div>
+        <div><b>Event Horizon (r<sub>+</sub>):</b> ${this.r_plus.toFixed(3)} r<sub>s</sub></div>
+      `;
+    }
     
     this.container.innerHTML = `
-      <div style="font-weight: bold; color: #ffaa00; margin-bottom: 5px; font-size: 16px;">DATA HUD</div>
+      <div style="font-weight: bold; color: ${metricColor}; margin-bottom: 5px; font-size: 16px;">DATA HUD — ${metricType}</div>
       <div><b>Mass:</b> ${this.blackHole.massInSolarMasses} M<sub>☉</sub></div>
       <div><b>Schwarzschild Radius (r<sub>s</sub>):</b> ${this.blackHole.rs.toExponential(2)} m</div>
+      ${kerrLines}
       <div><b>Photon Sphere:</b> 1.5 r<sub>s</sub></div>
       <div><b>Time Dilation (@10r<sub>s</sub>):</b> ${timeDilation.toFixed(3)}x</div>
       <div style="margin-top: 10px; opacity: 0.7; font-size: 12px;">

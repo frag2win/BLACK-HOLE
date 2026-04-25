@@ -3,11 +3,11 @@
  * 
  * Architecture:
  * - Two storage buffers in ping-pong pattern (bufferA ↔ bufferB)
- * - WGSL compute shader runs Newtonian gravity + Leapfrog integration
+ * - WGSL compute shader runs Kerr gravity + Leapfrog integration
  * - Vertex shader reads directly from compute output buffer
  * - ZERO particle data ever crosses the GPU↔CPU bus
  * 
- * Phase 1: Newtonian gravity only, Leapfrog integration
+ * Phase 2: Kerr metric with Lense-Thirring frame dragging
  */
 import * as THREE from 'three';
 import { Config } from '../config.js';
@@ -52,6 +52,11 @@ export class GPUParticleSystem {
     this.rs = 1.0;
     this.dt = Config.simulation.timeScale;
     
+    // --- Kerr parameters (Phase 2) ---
+    this.spin = 0.0;       // Dimensionless spin a [0.0, 0.998]
+    this.spinAxis = [0.0, 1.0, 0.0]; // Spin vector (Y-up = rotation axis)
+    this._computeRplus();
+    
     // FPS logging
     this.fpsFrameCount = 0;
     this.fpsLastTime = performance.now();
@@ -59,6 +64,29 @@ export class GPUParticleSystem {
     
     this._initBuffers();
     this._initRenderGeometry();
+  }
+
+  /**
+   * Compute the outer event horizon radius for Kerr black hole.
+   * r_plus = (rs/2) + sqrt((rs/2)² - (a * rs/2)²)
+   * When spin=0, r_plus = rs (Schwarzschild).
+   * When spin=1, r_plus = rs/2 (extremal Kerr).
+   */
+  _computeRplus() {
+    const half_rs = this.rs / 2.0;
+    const a_physical = this.spin * half_rs; // a in length units
+    const discriminant = half_rs * half_rs - a_physical * a_physical;
+    this.r_plus = half_rs + Math.sqrt(Math.max(0, discriminant));
+    console.log(`[Kerr] spin a = ${this.spin.toFixed(3)}, r+ = ${this.r_plus.toFixed(4)} rs`);
+  }
+
+  /**
+   * Set the spin parameter and recompute r_plus
+   * @param {number} a - Spin parameter [0.0, 0.998]
+   */
+  setSpin(a) {
+    this.spin = Math.max(0, Math.min(0.998, a));
+    this._computeRplus();
   }
 
   /**
@@ -114,9 +142,13 @@ export class GPUParticleSystem {
     // Upload initial data to buffer A
     this.device.queue.writeBuffer(this.bufferA, 0, data);
     
-    // Create uniform buffer for simulation parameters (16 bytes: GM, rs, dt, pad)
+    // Create uniform buffer for KerrUniforms (48 bytes)
+    // Layout: GM(f32), spin(f32), rs(f32), dt(f32),
+    //         spin_vec.x(f32), spin_vec.y(f32), spin_vec.z(f32), r_plus(f32)
+    // Total = 32 bytes, but WGSL vec3+f32 in a struct needs 48 bytes with padding
+    // Actually: {f32, f32, f32, f32, vec3<f32>, f32} = 32 bytes aligned
     this.uniformBuffer = this.device.createBuffer({
-      size: 16,
+      size: 32, // Exact match: 4 x f32 (16) + vec3<f32> (12) + f32 (4) = 32 bytes
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
     
@@ -124,10 +156,29 @@ export class GPUParticleSystem {
   }
 
   /**
-   * Update uniform buffer with current simulation parameters
+   * Update uniform buffer with current Kerr simulation parameters.
+   * Must match WGSL KerrUniforms struct layout exactly.
+   * 
+   * KerrUniforms {
+   *   GM       : f32,       // offset 0
+   *   spin     : f32,       // offset 4
+   *   rs       : f32,       // offset 8
+   *   dt       : f32,       // offset 12
+   *   spin_vec : vec3<f32>, // offset 16 (vec3 must be 16-byte aligned)
+   *   r_plus   : f32,       // offset 28
+   * }; // total = 32 bytes
    */
   _updateUniforms() {
-    const uniformData = new Float32Array([this.GM, this.rs, this.dt, 0.0]);
+    const uniformData = new Float32Array([
+      this.GM,              // offset 0:  GM
+      this.spin,            // offset 4:  spin
+      this.rs,              // offset 8:  rs
+      this.dt,              // offset 12: dt
+      this.spinAxis[0],     // offset 16: spin_vec.x
+      this.spinAxis[1],     // offset 20: spin_vec.y
+      this.spinAxis[2],     // offset 24: spin_vec.z
+      this.r_plus,          // offset 28: r_plus
+    ]);
     this.device.queue.writeBuffer(this.uniformBuffer, 0, uniformData);
   }
 
