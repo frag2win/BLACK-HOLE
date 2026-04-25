@@ -68,18 +68,24 @@ void main() {
     // 7. Calculate deflection vector in aspect-corrected space
     vec2 offset = normalize(delta) * deflectionStrength;
 
-    // 7b. Fade lensing at screen edges to prevent tiling artifacts
-    float edgeFade = 1.0 - smoothstep(0.4, 0.95, length(vUv - vec2(0.5)));
-    offset *= edgeFade;
+    // 7b. Cap maximum deflection to prevent extreme UV warping
+    float maxDeflect = 0.15;
+    float offsetLen = length(offset);
+    if (offsetLen > maxDeflect) {
+        offset *= maxDeflect / offsetLen;
+    }
 
     // 8. Convert back to UV space
     offset.x /= aspect;
 
-    // 9. Apply the offset and clamp to prevent wrap/tile artifacts
-    vec2 primaryUV = clamp(vUv - offset, 0.001, 0.999);
+    // 9. Apply the offset — bounds-check instead of clamping
+    vec2 primaryUV = vUv - offset;
 
-    // Sample the primary image
-    vec4 col = texture2D(tDiffuse, primaryUV);
+    // Sample the primary image — BLACK if out of bounds (no clamping!)
+    vec4 col = vec4(0.0, 0.0, 0.0, 1.0);
+    if (primaryUV.x > 0.0 && primaryUV.x < 1.0 && primaryUV.y > 0.0 && primaryUV.y < 1.0) {
+        col = texture2D(tDiffuse, primaryUV);
+    }
 
     // 10. Secondary Image (Einstein Ring)
     float einsteinRadius = rs_screen * 1.5;
@@ -87,18 +93,16 @@ void main() {
         float mirroredR = einsteinRadius * 2.0 - r;
         vec2 secondaryDelta = normalize(delta) * mirroredR;
         
-        // Convert back to UV space — clamped
-        vec2 secondaryUV = clamp(
-            uBlackHolePos - vec2(secondaryDelta.x / aspect, secondaryDelta.y),
-            0.001, 0.999
-        );
+        vec2 secondaryUV = uBlackHolePos - vec2(secondaryDelta.x / aspect, secondaryDelta.y);
         
-        vec4 col2 = texture2D(tDiffuse, secondaryUV);
-        
-        // Brightness threshold to keep background clean
-        float brightness = dot(col2.rgb, vec3(0.299, 0.587, 0.114));
-        if (brightness > 0.02) {
-            col.rgb += col2.rgb;
+        // Only sample if in bounds — never clamp
+        if (secondaryUV.x > 0.0 && secondaryUV.x < 1.0 && secondaryUV.y > 0.0 && secondaryUV.y < 1.0) {
+            vec4 col2 = texture2D(tDiffuse, secondaryUV);
+            
+            float brightness = dot(col2.rgb, vec3(0.299, 0.587, 0.114));
+            if (brightness > 0.02) {
+                col.rgb += col2.rgb;
+            }
         }
     }
 

@@ -17,6 +17,12 @@ export class LensingRenderer {
     
     this.composer = new EffectComposer(this.sceneManager.renderer);
     
+    // Force ClampToEdge on render targets to prevent tiling at extreme lensing
+    this.composer.renderTarget1.texture.wrapS = THREE.ClampToEdgeWrapping;
+    this.composer.renderTarget1.texture.wrapT = THREE.ClampToEdgeWrapping;
+    this.composer.renderTarget2.texture.wrapS = THREE.ClampToEdgeWrapping;
+    this.composer.renderTarget2.texture.wrapT = THREE.ClampToEdgeWrapping;
+    
     const renderPass = new RenderPass(this.sceneManager.scene, this.sceneManager.camera);
     this.composer.addPass(renderPass);
     
