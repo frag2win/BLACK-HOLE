@@ -49,6 +49,22 @@ export class LensingRenderer {
     );
     this.composer.addPass(this.bloomPass);
     
+    // Force ClampToEdge on ALL bloom internal render targets (mip chain)
+    // This is the root cause of checkerboard tiling at extreme lensing angles
+    const clampRT = (rt) => {
+      if (rt && rt.texture) {
+        rt.texture.wrapS = THREE.ClampToEdgeWrapping;
+        rt.texture.wrapT = THREE.ClampToEdgeWrapping;
+      }
+    };
+    if (this.bloomPass.renderTargetsHorizontal) {
+      this.bloomPass.renderTargetsHorizontal.forEach(clampRT);
+    }
+    if (this.bloomPass.renderTargetsVertical) {
+      this.bloomPass.renderTargetsVertical.forEach(clampRT);
+    }
+    clampRT(this.bloomPass.renderTargetBright);
+    
     // 3. Lensing Pass (Distortion)
     this.lensingPass = new ShaderPass(LensingShader);
     this.composer.addPass(this.lensingPass);

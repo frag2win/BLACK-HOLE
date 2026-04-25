@@ -75,6 +75,11 @@ void main() {
         offset *= maxDeflect / offsetLen;
     }
 
+    // 7c. Fade deflection near screen edges to prevent sampling artifacts
+    float edgeX = smoothstep(0.0, 0.08, vUv.x) * smoothstep(1.0, 0.92, vUv.x);
+    float edgeY = smoothstep(0.0, 0.08, vUv.y) * smoothstep(1.0, 0.92, vUv.y);
+    offset *= edgeX * edgeY;
+
     // 8. Convert back to UV space
     offset.x /= aspect;
 
