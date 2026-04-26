@@ -13,8 +13,6 @@ A physically-inspired, real-time simulation of a Schwarzschild black hole, featu
 
 This project aims to visualize the complex relativistic effects around a non-rotating (Schwarzschild) black hole. It provides a real-time interactive environment where users can observe light-bending phenomena and the dynamics of an accretion disk.
 
-**View on AI Studio**: [https://ai.studio/apps/8000bd92-ddac-4166-a097-80de3f1a3852](https://ai.studio/apps/8000bd92-ddac-4166-a097-80de3f1a3852)
-
 ## ✨ Features
 
 - **Physically Informed Physics**: Accurately calculates the Schwarzschild Radius ($r_s$), Photon Sphere ($1.5r_s$), and Innermost Stable Circular Orbit (ISCO, $3r_s$).
