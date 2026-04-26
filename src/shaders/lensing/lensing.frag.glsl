@@ -13,6 +13,7 @@ uniform vec2 uResolution;
 uniform float uLensingStrength;
 uniform float uLensingMultiplier;
 uniform float uSpin;    // Kerr spin parameter a [0.0, 1.0]
+uniform vec3 uViewDir;  // Viewing direction for angle-dependent clamp
 
 varying vec2 vUv;
 
@@ -66,7 +67,9 @@ void main() {
     deflectionStrength *= (1.0 + uSpin * 0.5 * cos(phi));
 
     // 7. Calculate deflection vector in aspect-corrected space
-    vec2 offset = normalize(delta) * deflectionStrength;
+    float viewAngleFactor = abs(dot(vec3(0.0, 1.0, 0.0), uViewDir));
+    float maxOffset = mix(0.3, 0.15, 1.0 - viewAngleFactor);
+    vec2 offset = normalize(delta) * min(deflectionStrength, maxOffset);
 
     // 7b. Cap maximum deflection to prevent extreme UV warping
     float maxDeflect = 0.15;

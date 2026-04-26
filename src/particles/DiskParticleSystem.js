@@ -34,7 +34,9 @@ export class DiskParticleSystem {
       fragmentShader,
       uniforms: {
         uIsco: { value: Config.disk.r_isco_sim },
-        uMaxRadius: { value: Config.disk.r_max_sim }
+        uMaxRadius: { value: Config.disk.r_max_sim },
+        uSlabWeight: { value: 1.0 },
+        uSlabY: { value: 0.0 }
       },
       transparent: true,
       blending: THREE.AdditiveBlending,
@@ -42,14 +44,38 @@ export class DiskParticleSystem {
       side: THREE.DoubleSide
     });
 
-    // 4. Create InstancedMesh
-    this.instancedMesh = new THREE.InstancedMesh(this.geometry, this.material, this.count);
-    this.instancedMesh.frustumCulled = false; // Prevent culling when near edges
+    // 4. Create multi-slab volumetric disk
+    const N_SLABS = 16;
+    const H_MAX = Config.disk.r_isco_sim * 0.08;
     
-    // Add velocity attribute for Doppler shift
-    this.velocityArray = new Float32Array(this.count * 3);
-    this.velocityAttribute = new THREE.InstancedBufferAttribute(this.velocityArray, 3);
-    this.instancedMesh.geometry.setAttribute('instanceVelocity', this.velocityAttribute);
+    this.diskGroup = new THREE.Group();
+    this.slabs = [];
+    
+    for (let i = 0; i < N_SLABS; i++) {
+      const t = (i / (N_SLABS - 1)) - 0.5;
+      const y = t * 2.0 * H_MAX;
+      
+      const weight = Math.exp(-0.5 * Math.pow(t * 3.5, 2.0));
+      
+      const slabMat = this.material.clone();
+      slabMat.uniforms.uSlabWeight = { value: weight };
+      slabMat.uniforms.uSlabY = { value: y / H_MAX };
+      
+      const slab = new THREE.InstancedMesh(this.geometry, slabMat, this.count);
+      slab.frustumCulled = false; // Prevent culling when near edges
+      slab.position.y = y;
+      slab.rotation.y = i * 2.39996; // Golden angle rotation to break vertical streaks
+      
+      // Add velocity attribute for Doppler shift
+      if (i === 0) {
+        this.velocityArray = new Float32Array(this.count * 3);
+        this.velocityAttribute = new THREE.InstancedBufferAttribute(this.velocityArray, 3);
+      }
+      slab.geometry.setAttribute('instanceVelocity', this.velocityAttribute);
+      
+      this.diskGroup.add(slab);
+      this.slabs.push(slab);
+    }
 
     // Dummy object used for matrix calculations
     this.dummy = new THREE.Object3D();
@@ -57,7 +83,7 @@ export class DiskParticleSystem {
     // Matrix to zero-out scaling for dead particles
     this.zeroMatrix = new THREE.Matrix4().scale(new THREE.Vector3(0,0,0));
     
-    this.scene.add(this.instancedMesh);
+    this.scene.add(this.diskGroup);
   }
 
   /**
@@ -74,13 +100,17 @@ export class DiskParticleSystem {
       if (p.alive) {
           this.dummy.position.copy(p.position);
           this.dummy.updateMatrix();
-          this.instancedMesh.setMatrixAt(i, this.dummy.matrix);
+          for(const slab of this.slabs) {
+              slab.setMatrixAt(i, this.dummy.matrix);
+          }
 
           this.velocityArray[i * 3 + 0] = p.velocity.x;
           this.velocityArray[i * 3 + 1] = p.velocity.y;
           this.velocityArray[i * 3 + 2] = p.velocity.z;
       } else {
-          this.instancedMesh.setMatrixAt(i, this.zeroMatrix);
+          for(const slab of this.slabs) {
+              slab.setMatrixAt(i, this.zeroMatrix);
+          }
           
           this.velocityArray[i * 3 + 0] = 0;
           this.velocityArray[i * 3 + 1] = 0;
@@ -89,6 +119,8 @@ export class DiskParticleSystem {
     }
     
     this.velocityAttribute.needsUpdate = true;
-    this.instancedMesh.instanceMatrix.needsUpdate = true;
+    for(const slab of this.slabs) {
+        slab.instanceMatrix.needsUpdate = true;
+    }
   }
 }

@@ -13,7 +13,7 @@ export class BlackHoleRenderer {
     this.photonRing = this.createPhotonRing();
     
     this.scene.add(this.mesh);
-    this.scene.add(this.photonRing);
+    // this.scene.add(this.photonRing);
   }
 
   /**

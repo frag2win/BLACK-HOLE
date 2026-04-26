@@ -34,7 +34,8 @@ export class LensingRenderer {
         uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
         uLensingStrength: { value: 1.0 },
         uLensingMultiplier: { value: 1.0 },
-        uSpin: { value: 0.0 }
+        uSpin: { value: 0.0 },
+        uViewDir: { value: new THREE.Vector3(0, 0, 1) }
       },
       vertexShader: lensingVert,
       fragmentShader: lensingFrag
@@ -89,6 +90,11 @@ export class LensingRenderer {
     const screenY = (this.bhWorldPos.y * 0.5) + 0.5; // Inverse Y? No, screen uses +Y up here
     
     this.lensingPass.uniforms.uBlackHolePos.value.set(screenX, screenY);
+    
+    // Pass viewing direction to shader for angle-dependent clamps
+    const origin = new THREE.Vector3(0, 0, 0);
+    const viewDir = new THREE.Vector3().subVectors(origin, camera.position).normalize();
+    this.lensingPass.uniforms.uViewDir.value.copy(viewDir);
     
     // Calculate apparent size of Schwarzschild radius on screen
     // rs is 1.0 simulation units

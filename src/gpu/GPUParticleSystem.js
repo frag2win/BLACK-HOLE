@@ -243,10 +243,33 @@ export class GPUParticleSystem {
       depthWrite: false,
       sizeAttenuation: true,
     });
+    // 4. Create multi-slab volumetric disk for GPU system
+    const N_SLABS = 16;
+    const H_MAX = Config.disk.r_isco_sim * 0.08;
     
-    this.points = new THREE.Points(geometry, material);
-    this.points.frustumCulled = false;
-    this.scene.add(this.points);
+    this.pointsGroup = new THREE.Group();
+    
+    for (let i = 0; i < N_SLABS; i++) {
+      const t = (i / (N_SLABS - 1)) - 0.5;
+      const y = t * 2.0 * H_MAX;
+      
+      const weight = Math.exp(-0.5 * Math.pow(t * 3.5, 2.0));
+      
+      const slabMat = material.clone();
+      const baseOpacity = 0.15 / N_SLABS;
+      const slabOpacity = weight * Math.exp(-Math.abs(y / H_MAX) * 2.0);
+      slabMat.opacity = baseOpacity * slabOpacity;
+      
+      const slab = new THREE.Points(geometry, slabMat);
+      slab.frustumCulled = false;
+      slab.position.y = y;
+      slab.rotation.y = i * 2.39996; // Golden angle rotation to break vertical streaks
+      
+      this.pointsGroup.add(slab);
+    }
+    
+    this.points = this.pointsGroup.children[0]; // Keep reference for geometry/material updates
+    this.scene.add(this.pointsGroup);
   }
 
   /**
@@ -415,8 +438,10 @@ export class GPUParticleSystem {
     this.uniformBuffer?.destroy();
     this._readbackA?.destroy();
     this._readbackB?.destroy();
-    this.scene.remove(this.points);
+    this.scene.remove(this.pointsGroup);
     this.points.geometry.dispose();
-    this.points.material.dispose();
+    for (const child of this.pointsGroup.children) {
+        child.material.dispose();
+    }
   }
 }

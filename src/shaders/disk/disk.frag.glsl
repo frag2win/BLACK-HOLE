@@ -12,6 +12,8 @@ varying float vDoppler;
 
 uniform float uIsco;
 uniform float uMaxRadius;
+uniform float uSlabWeight;
+uniform float uSlabY;
 
 // ACES Filmic Tonemapping
 vec3 ACESFilm(vec3 x) {
@@ -60,6 +62,16 @@ void main() {
     
     // Apply ACES tonemapping to prevent white-clipping
     color = ACESFilm(color);
+    
+    // Step 2: Volumetric slab opacity modulation
+    float baseOpacity = 0.15;
+    float slabOpacity = baseOpacity * uSlabWeight * exp(-abs(uSlabY) * 2.0);
+    alpha *= slabOpacity;
+    
+    // Radial transparency falloff
+    float r_norm_fade = (vRadius - uIsco) / (uMaxRadius - uIsco);
+    float radialFade = pow(max(1.0 - r_norm_fade, 0.0), 0.5);
+    alpha *= radialFade;
     
     // Pre-multiply by alpha so additive blending doesn't render quad corners
     color *= (alpha * 0.4);
