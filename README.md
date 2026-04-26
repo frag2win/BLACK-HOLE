@@ -49,18 +49,14 @@ This project aims to visualize the complex relativistic effects around a non-rot
    npm install
    ```
 
-3. **Configure Environment**:
-   Create a `.env.local` file in the root directory and add your Gemini API key:
-   ```env
-   GEMINI_API_KEY=your_api_key_here
    ```
 
-4. Start the development server:
+3. Start the development server:
    ```bash
    npm run dev
    ```
 
-5. Open your browser and navigate to `http://localhost:3000`.
+4. Open your browser and navigate to `http://localhost:3000`.
 
 ## 🔬 Physics Context
 
